@@ -1,6 +1,6 @@
 {
-  "serverHost": "example.aternos.me",
-  "serverPort": 12345,
-  "botUsername": "MyBot",
+  "serverHost": "pakistansmp.mcsh.io",
+  "serverPort": 13338,
+  "botUsername": "afk_bot",
   "botChunk": 1
 }
