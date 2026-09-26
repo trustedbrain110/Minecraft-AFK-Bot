@@ -1,66 +1,62 @@
 const mineflayer = require('mineflayer');
+const express = require('express');
 const config = require('./config.json');
 
-const bot = mineflayer.createBot({
-  host: config.serverHost,
-  port: config.serverPort,
-  username: config.botUsername,
-  auth: 'offline',
-  version: false,
-  viewDistance: config.botChunk
+// Render / UptimeRobot Keep-Alive Web Server
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+  res.send('AFK Bot Online Hai!');
 });
 
-let movementPhase = 0;
-const STEP_INTERVAL = 1500;
-const STEP_SPEED    = 1;
-const JUMP_DURATION = 500;
-
-bot.on('spawn', () => {
-  setTimeout(() => {
-    bot.setControlState('sneak', true);
-    console.log(`✅ ${config.botUsername} is Ready!`);
-  }, 3000);
-
-  setTimeout(movementCycle, STEP_INTERVAL);
+app.listen(port, () => {
+  console.log(`Web server running on port ${port}`);
 });
 
-function movementCycle() {
-  if (!bot.entity) return;
+// Bot Setup
+function createBot() {
+  const bot = mineflayer.createBot({
+    host: config.serverHost,
+    port: config.serverPort,
+    username: config.botUsername,
+    version: false
+  });
 
-  switch (movementPhase) {
-    case 0:
-      bot.setControlState('forward', true);
-      bot.setControlState('back', false);
-      bot.setControlState('jump', false);
-      break;
-    case 1:
-      bot.setControlState('forward', false);
-      bot.setControlState('back', true);
-      bot.setControlState('jump', false);
-      break;
-    case 2:
-      bot.setControlState('forward', false);
-      bot.setControlState('back', false);
+  bot.on('spawn', () => {
+    console.log('Bot server me join ho gaya hai!');
+
+    // Spawn hone ke 2 second baad auto-register aur login command bhejega
+    setTimeout(() => {
+      bot.chat('/register brain12345 brain12345');
+      bot.chat('/login brain12345');
+    }, 2000);
+
+    // Anti-AFK Jump Loop (Har 30 seconds baad)
+    setInterval(() => {
       bot.setControlState('jump', true);
-      setTimeout(() => {
-        bot.setControlState('jump', false);
-      }, JUMP_DURATION);
-      break;
-    case 3:
-      bot.setControlState('forward', false);
-      bot.setControlState('back', false);
-      bot.setControlState('jump', false);
-      break;
-  }
+      setTimeout(() => bot.setControlState('jump', false), 500);
+    }, 30000);
+  });
 
-  movementPhase = (movementPhase + 1) % 4;
+  // Chat message listener (Agar server /login maange toh auto answer kare)
+  bot.on('message', (message) => {
+    const msg = message.toString().toLowerCase();
+    if (msg.includes('/login')) {
+      bot.chat('/login brain12345');
+    } else if (msg.includes('/register')) {
+      bot.chat('/register brain12345 brain12345');
+    }
+  });
 
-  setTimeout(movementCycle, STEP_INTERVAL);
+  bot.on('end', () => {
+    console.log('Bot disconnect hua, 5 seconds me reconnect ho raha hai...');
+    setTimeout(createBot, 5000);
+  });
+
+  bot.on('error', (err) => {
+    console.log('Bot Error:', err);
+  });
 }
 
-bot.on('error', (err) => {
-  console.error('⚠️ Error:', err);
-});
-bot.on('end', () => {
-  console.log('⛔️ Bot Disconnected!');
-});
+createBot();
