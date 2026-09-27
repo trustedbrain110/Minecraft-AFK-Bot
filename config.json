@@ -1,6 +1,6 @@
 {
   "serverHost": "blocksmp.mcsh.io",
   "serverPort": 25565,
-  "botUsername": "AFK_bot",
-  "botChunk": 1
+  "botUsername": "afk_bot123",
+  "password": "brain12345"
 }
