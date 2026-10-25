@@ -20,7 +20,7 @@ function createBot() {
     host: config.serverHost,
     port: config.serverPort,
     username: config.botUsername,
-    version: '1.20.1'
+    version: '1.21.11'
   });
 
   bot.on('spawn', () => {
